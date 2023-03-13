@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { Button } from "./components/Button";
+import { Carousel } from "./components/Carousel";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -19,10 +21,13 @@ function App() {
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <button onClick={(e) => greet(e)}>Greet</button>
+      <Button onClick={(e) => greet(e)} size="md" type="success">
+        Greet
+      </Button>
       <div>
         <h1>Probando</h1>
       </div>
+      <Carousel />
       {greetMsg && <div>{greetMsg}</div>}
     </>
   );
