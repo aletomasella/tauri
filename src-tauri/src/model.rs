@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::{PathBuf, Path};
+use std::path::{PathBuf};
 use serde::{Deserialize, Serialize};
 use std::result::Result;
 use super::lexer::Lexer;
@@ -11,63 +11,62 @@ pub trait Model {
 }
 
 
-
 pub struct SqliteModel {
     connection: sqlite::Connection,
 }
 
-impl SqliteModel {
-    fn execute(&self, statement: &str) -> Result<(), ()> {
-        self.connection.execute(statement).map_err(|err| {
-            eprintln!("ERROR: could not execute query {statement}: {err}");
-        })?;
-        Ok(())
-    }
+// impl SqliteModel {
+//     fn execute(&self, statement: &str) -> Result<(), ()> {
+//         self.connection.execute(statement).map_err(|err| {
+//             eprintln!("ERROR: could not execute query {statement}: {err}");
+//         })?;
+//         Ok(())
+//     }
 
-    pub fn begin(&self) -> Result<(), ()> {
-        self.execute("BEGIN;")
-    }
+//     pub fn begin(&self) -> Result<(), ()> {
+//         self.execute("BEGIN;")
+//     }
 
-    pub fn commit(&self) -> Result<(), ()> {
-        self.execute("COMMIT;")
-    }
+//     pub fn commit(&self) -> Result<(), ()> {
+//         self.execute("COMMIT;")
+//     }
 
-    pub fn open(path: &Path) -> Result<Self, ()> {
-        let connection = sqlite::open(path).map_err(|err| {
-            eprintln!("ERROR: could not open sqlite database {path}: {err}", path = path.display());
-        })?;
-        let this = Self {connection};
+//     pub fn open(path: &Path) -> Result<Self, ()> {
+//         let connection = sqlite::open(path).map_err(|err| {
+//             eprintln!("ERROR: could not open sqlite database {path}: {err}", path = path.display());
+//         })?;
+//         let this = Self {connection};
 
-        this.execute("
-            CREATE TABLE IF NOT EXISTS Documents (
-                id INTEGER NOT NULL PRIMARY KEY,
-                path TEXT,
-                term_count INTEGER,
-                UNIQUE(path)
-            );
-        ")?;
+//         this.execute("
+//             CREATE TABLE IF NOT EXISTS Documents (
+//                 id INTEGER NOT NULL PRIMARY KEY,
+//                 path TEXT,
+//                 term_count INTEGER,
+//                 UNIQUE(path)
+//             );
+//         ")?;
 
-        this.execute("
-            CREATE TABLE IF NOT EXISTS TermFreq (
-                term TEXT,
-                doc_id INTEGER,
-                freq INTEGER,
-                UNIQUE(term, doc_id),
-                FOREIGN KEY(doc_id) REFERENCES Documents(id)
-            );
-       ")?;
+//         this.execute("
+//             CREATE TABLE IF NOT EXISTS TermFreq (
+//                 term TEXT,
+//                 doc_id INTEGER,
+//                 freq INTEGER,
+//                 UNIQUE(term, doc_id),
+//                 FOREIGN KEY(doc_id) REFERENCES Documents(id)
+//             );
+//        ")?;
 
-        this.execute("
-            CREATE TABLE IF NOT EXISTS DocFreq (
-                term TEXT,
-                freq INTEGER,
-                UNIQUE(term)
-            );
-        ")?;
+//         this.execute("
+//             CREATE TABLE IF NOT EXISTS DocFreq (
+//                 term TEXT,
+//                 freq INTEGER,
+//                 UNIQUE(term)
+//             );
+//         ")?;
 
-        Ok(this)
-    }
-}
+//         Ok(this)
+//     }
+// }
 
 impl Model for SqliteModel {
     fn search_query(&self, _query: &[char]) -> Result<Vec<(PathBuf, f32)>, ()> {

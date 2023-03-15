@@ -59,10 +59,17 @@ fn parse_entire_file_by_extension(file_path: &Path) -> Result<String, ()> {
 }
 
 
+#[tauri::command]
+fn call_add_folder_to_model(dir_path: String) -> Result<(), ()> {
+    let dir_path = Path::new(&dir_path);
+    let mut model = InMemoryModel::default();	
+    add_folder_to_model(dir_path, &mut model)?;
+    Ok(())
+}
+
     
 
 // TODO: add a command to add a single file to the model
-#[tauri::command]
 fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model) -> Result<(), ()> {
     let dir = fs::read_dir(dir_path).map_err(|err| {
         eprintln!("ERROR: could not open directory {dir_path} for indexing: {err}",
@@ -107,7 +114,7 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model) -> Result<(), ()>
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![add_folder_to_model])
+        .invoke_handler(tauri::generate_handler![call_add_folder_to_model])
         .run(tauri::generate_context!()) 
         .expect("error while running tauri application"); 
 }
