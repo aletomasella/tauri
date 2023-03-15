@@ -8,7 +8,7 @@ use xml::reader::{XmlEvent, EventReader};
 use xml::common::{Position, TextPosition};
 use std::env;
 use std::result::Result;
-use std::io::{BufReader};
+use std::io::{BufReader, BufWriter};
 use model::*;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
@@ -58,12 +58,30 @@ fn parse_entire_file_by_extension(file_path: &Path) -> Result<String, ()> {
     }
 }
 
+fn save_model_as_json(model: &InMemoryModel, index_path: &str) -> Result<(), ()> {
+    println!("Saving {index_path}...");
+
+    let index_file = File::create(index_path).map_err(|err| {
+        eprintln!("ERROR: could not create index file {index_path}: {err}");
+    })?;
+
+    serde_json::to_writer(BufWriter::new(index_file), &model).map_err(|err| {
+        eprintln!("ERROR: could not serialize index into file {index_path}: {err}");
+    })?;
+
+    Ok(())
+}
+
 
 #[tauri::command]
 fn call_add_folder_to_model(dir_path: String) -> Result<(), ()> {
+  println!("call_add_folder_to_model({})", dir_path);
     let dir_path = Path::new(&dir_path);
-    let mut model = InMemoryModel::default();	
+    let mut model = InMemoryModel::default();
     add_folder_to_model(dir_path, &mut model)?;
+    save_model_as_json(&model, "index.json").unwrap_or_else(|_| {
+        eprintln!("ERROR: could not save index to file");
+    });
     Ok(())
 }
 
@@ -107,7 +125,7 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model) -> Result<(), ()>
 
         model.add_document(file_path, &content)?;
     }
-
+    print!("Done indexing {:?}.", dir_path );
     Ok(())
 }
 
