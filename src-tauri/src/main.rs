@@ -11,9 +11,9 @@ use std::result::Result;
 use std::io::{BufReader};
 use model::*;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
+
 fn parse_entire_txt_file(file_path: &Path) -> Result<String, ()> {
-    fs::read_to_string(file_path).map_err(|err| {
+ fs::read_to_string(file_path).map_err(|err| {
         eprintln!("ERROR: coult not open file {file_path}: {err}", file_path = file_path.display());
     })
 }
@@ -58,7 +58,12 @@ fn parse_entire_file_by_extension(file_path: &Path) -> Result<String, ()> {
     }
 }
 
-fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model, skipped: &mut usize) -> Result<(), ()> {
+
+    
+
+// TODO: add a command to add a single file to the model
+#[tauri::command]
+fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model) -> Result<(), ()> {
     let dir = fs::read_dir(dir_path).map_err(|err| {
         eprintln!("ERROR: could not open directory {dir_path} for indexing: {err}",
                   dir_path = dir_path.display());
@@ -78,7 +83,7 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model, skipped: &mut usi
         })?;
 
         if file_type.is_dir() {
-            add_folder_to_model(&file_path, model, skipped)?;
+            add_folder_to_model(&file_path, model)?;
             continue 'next_file;
         }
 
@@ -89,7 +94,6 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model, skipped: &mut usi
         let content = match parse_entire_file_by_extension(&file_path) {
             Ok(content) => content.chars().collect::<Vec<_>>(),
             Err(()) => {
-                *skipped += 1;
                 continue 'next_file;
             }
         };
@@ -103,7 +107,7 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model, skipped: &mut usi
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![parse_entire_txt_file])
+        .invoke_handler(tauri::generate_handler![add_folder_to_model])
         .run(tauri::generate_context!()) 
         .expect("error while running tauri application"); 
 }

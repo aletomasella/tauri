@@ -4,10 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::result::Result;
 use super::lexer::Lexer;
 
+
 pub trait Model {
     fn search_query(&self, query: &[char]) -> Result<Vec<(PathBuf, f32)>, ()>;
     fn add_document(&mut self, path: PathBuf, content: &[char]) -> Result<(), ()>;
 }
+
+
 
 pub struct SqliteModel {
     connection: sqlite::Connection,
