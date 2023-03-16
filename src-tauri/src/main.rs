@@ -79,7 +79,8 @@ fn call_add_folder_to_model(dir_path: String) -> Result<(), ()> {
     let dir_path = Path::new(&dir_path);
     let mut model = InMemoryModel::default();
     add_folder_to_model(dir_path, &mut model)?;
-    save_model_as_json(&model, "index.json").unwrap_or_else(|_| {
+    let index_path = "C:\\Users\\Tomasella\\Documents\\REPOS\\tauri\\data\\index.json";
+    save_model_as_json(&model, index_path).unwrap_or_else(|_| {
         eprintln!("ERROR: could not save index to file");
     });
     Ok(())
