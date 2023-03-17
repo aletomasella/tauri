@@ -3,7 +3,7 @@
 mod model;
 mod lexer;
 use std::fs::{self, File};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use xml::reader::{XmlEvent, EventReader};
 use xml::common::{Position, TextPosition};
 use std::env;
@@ -50,16 +50,15 @@ fn parse_entire_file_by_extension(file_path: &Path) -> Result<String, ()> {
         // TODO: specialized parser for markdown files
         "txt" | "md" => parse_entire_txt_file(file_path),
         _ => {
-            eprintln!("ERROR: can't detect file type of {file_path}: unsupported extension {extension}",
-                      file_path = file_path.display(),
-                      extension = extension);
+            // eprintln!("ERROR: can't detect file type of {file_path}: unsupported extension {extension}",
+            //           file_path = file_path.display(),
+            //           extension = extension);
             Err(())
         }
     }
 }
 
 fn save_model_as_json(model: &InMemoryModel, index_path: &str) -> Result<(), ()> {
-    println!("Saving {index_path}...");
 
     let index_file = File::create(index_path).map_err(|err| {
         eprintln!("ERROR: could not create index file {index_path}: {err}");
@@ -74,7 +73,7 @@ fn save_model_as_json(model: &InMemoryModel, index_path: &str) -> Result<(), ()>
 
 
 #[tauri::command]
-fn call_add_folder_to_model(dir_path: String) -> Result<(), ()> {
+fn call_add_folder_to_model(dir_path: String, query : String) -> Result<Vec<(PathBuf, f32)>, ()> {
   println!("call_add_folder_to_model({})", dir_path);
     let dir_path = Path::new(&dir_path);
     let mut model = InMemoryModel::default();
@@ -83,8 +82,16 @@ fn call_add_folder_to_model(dir_path: String) -> Result<(), ()> {
     save_model_as_json(&model, index_path).unwrap_or_else(|_| {
         eprintln!("ERROR: could not save index to file");
     });
-    Ok(())
+    let chars = query.chars().collect::<Vec<_>>();
+    let result = model.search_query(&chars).unwrap_or_else(
+        |err| {
+            eprintln!("ERROR: could not search index: {:?}", err);
+            Vec::new()
+        }
+    ) ;
+    Ok(result)
 }
+
 
     
 
@@ -114,8 +121,6 @@ fn add_folder_to_model(dir_path: &Path, model: &mut dyn Model) -> Result<(), ()>
         }
 
         // TODO: how does this work with symlinks?
-
-        println!("Indexing {:?}...", &file_path);
 
         let content = match parse_entire_file_by_extension(&file_path) {
             Ok(content) => content.chars().collect::<Vec<_>>(),
