@@ -14,10 +14,17 @@ use model::*;
 
 fn parse_entire_txt_file(file_path: &Path) -> Result<String, ()> {
  fs::read_to_string(file_path).map_err(|err| {
-        eprintln!("ERROR: coult not open file {file_path}: {err}", file_path = file_path.display());
+        eprintln!("ERROR: could not open file {file_path}: {err}", file_path = file_path.display());
     })
 }
 
+
+fn parse_entire_docx_file(file_path : &Path) -> Result<String, ()> {
+ let file = File::open(file_path).map_err(|err| {
+    eprintln!("Error : could not open file {file_path} : {err}", file_path = file_path.display())
+    })
+        file
+}
 
 fn parse_entire_xml_file(file_path: &Path) -> Result<String, ()> {
     let file = File::open(file_path).map_err(|err| {
