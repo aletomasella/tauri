@@ -1,30 +1,19 @@
 import React from "react";
+import { useForm, useQueryData } from "../hooks";
 import { addFolderToModal } from "../rustFunctions";
 
 const Form = () => {
-  const [input, setInput] = React.useState({
+  const { form, update, clean } = useForm({
     dirPath: "",
     query: "",
   });
-  const [result, setResult] = React.useState<any[] | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput({
-      ...input,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const { data, setData } = useQueryData<[string, number][]>([]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = (await addFolderToModal(input)) as any[];
-    if (response) {
-      setResult(response.slice(0, 20));
-    }
-    setInput({
-      dirPath: "",
-      query: "",
-    });
+    const response = (await addFolderToModal(form)) as [string, number][];
+    response && setData(response);
+    clean();
   };
 
   return (
@@ -37,24 +26,24 @@ const Form = () => {
           <input
             type="text"
             name="dirPath"
-            value={input.dirPath}
-            onChange={handleChange}
+            value={form.dirPath}
+            onChange={(e) => update(e.target.value, e.target.name as any)}
             className="input input-primary"
           />
           <span className="label-text">Put your query here : </span>
           <input
             type="text"
             name="query"
-            value={input.query}
-            onChange={handleChange}
+            value={form.query}
+            onChange={(e) => update(e.target.value, e.target.name as any)}
             className="input input-primary"
           />
           <button className="btn btn-primary">Send Request</button>
         </form>
       </div>
       <div>
-        {result &&
-          result.map(([filePath, score], i) => (
+        {data &&
+          data.map(([filePath, score], i) => (
             <>
               <div key={i}>FILEPATH : {filePath}</div>
               <div key={i}>SCORE : {Math.round(score * 100)}</div>
